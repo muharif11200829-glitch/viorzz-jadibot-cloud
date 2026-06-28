@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Viorzz Bot WhatsApp — .jadibot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0D17;
+    --bg-deep:#05060C;
+    --purple:#8B6CFF;
+    --purple-deep:#5C3DD9;
+    --cyan:#00E5C7;
+    --pink:#FF3D7F;
+    --gold:#FFC857;
+    --text:#F1F2F9;
+    --text-soft:#9AA3C2;
+    --glass:rgba(18,20,36,0.46);
+    --glass-border:rgba(255,255,255,0.10);
+    --radius:18px;
+
+    /* ================================================================
+       🎨 PANDUAN TEMA ANIME — BACA INI DULU
+       ================================================================
+       Untuk ganti background anime / thumbnail:
+       1. Upload gambar anime kamu ke imgbb.com / Google Drive / Cloudinary
+          (pastikan link-nya bisa diakses publik / direct link ke gambar)
+       2. Ganti URL di bawah ini dengan link gambar kamu
+       3. Rekomendasi ukuran: minimal 1920x1080px, format JPG/PNG/WEBP
+       4. Pilih gambar yang gelap/semi-gelap agar teks tetap terbaca
+          Kalau gambar terlalu terang, naikkan opacity di .backdrop-tint
+       
+       Contoh link yang benar:
+       ✅ https://i.ibb.co/xxxxx/anime-bg.jpg
+       ✅ https://res.cloudinary.com/xxx/image/upload/anime.jpg
+       ❌ https://drive.google.com/file/d/xxx  (tidak langsung ke gambar)
+       ================================================================ */
+
+    /* ✏️ GANTI URL INI dengan link gambar anime kamu */
+    --bg-image: url('https://raw.githubusercontent.com/ZrooPro/SaveDat2/main/uploads/20260628_145048_212_dnpnujp8.jpg');
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Inter',sans-serif;
+    color:var(--text);
+    background:var(--bg-deep);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .display{font-family:'Orbitron',sans-serif;}
+  a{text-decoration:none;color:inherit;}
+  img{max-width:100%;display:block;}
+
+  /* ===== BACKDROP: anime image + dark gradient + blur layer ===== */
+  .backdrop{
+    position:fixed; inset:0; z-index:-3;
+    background-image:var(--bg-image);
+    background-size:cover; background-position:center;
+    filter:saturate(1.15) contrast(1.05);
+  }
+  .backdrop-tint{
+    position:fixed; inset:0; z-index:-2;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(139,108,255,0.35), transparent 45%),
+      radial-gradient(circle at 85% 30%, rgba(0,229,199,0.22), transparent 50%),
+      radial-gradient(circle at 60% 90%, rgba(255,61,127,0.18), transparent 45%),
+      linear-gradient(180deg, rgba(5,6,12,0.55) 0%, rgba(5,6,12,0.88) 55%, rgba(5,6,12,0.98) 100%);
+  }
+  .backdrop-noise{
+    position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:0.05;
+    background-image:repeating-linear-gradient(0deg, #fff 0px, transparent 1px, transparent 2px);
+  }
+
+  .placeholder-note{
+    position:fixed; bottom:10px; right:10px; z-index:50;
+    font-family:'JetBrains Mono'; font-size:10.5px; color:rgba(241,242,249,0.55);
+    background:rgba(5,6,12,0.55); border:1px solid var(--glass-border);
+    padding:6px 10px; border-radius:8px; backdrop-filter:blur(6px);
+    max-width:240px; line-height:1.4;
+  }
+
+  /* ===== GLASS PANEL base ===== */
+  .glass{
+    background:var(--glass);
+    border:1px solid var(--glass-border);
+    backdrop-filter:blur(18px) saturate(140%);
+    -webkit-backdrop-filter:blur(18px) saturate(140%);
+    border-radius:var(--radius);
+  }
+
+  header{
+    position:sticky; top:0; z-index:40;
+    padding:18px 6vw;
+    display:flex; align-items:center; justify-content:space-between;
+    background:rgba(5,6,12,0.55);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--glass-border);
+  }
+  .brand{display:flex; align-items:center; gap:11px;}
+  .brand-mark{
+    width:38px; height:38px; border-radius:10px;
+    background:linear-gradient(135deg, var(--purple), var(--cyan));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Orbitron'; font-weight:800; font-size:14px; color:#05060C;
+    box-shadow:0 0 22px rgba(139,108,255,0.55);
+  }
+  .brand-name{font-family:'Orbitron'; font-weight:700; font-size:17px; letter-spacing:0.02em;}
+  .brand-name span{color:var(--cyan);}
+  .status-pill{
+    display:flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono'; font-size:12px; color:var(--text-soft);
+    border:1px solid var(--glass-border); border-radius:99px; padding:7px 14px;
+    background:rgba(255,255,255,0.03);
+  }
+  .dot{width:7px; height:7px; border-radius:50%; background:var(--cyan); box-shadow:0 0 10px var(--cyan);}
+  @keyframes pulse-dot{0%,100%{opacity:1;} 50%{opacity:0.35;}}
+  .dot{animation:pulse-dot 1.8s ease-in-out infinite;}
+
+  /* ===== HERO ===== */
+  .hero{
+    padding:9vw 6vw 6vw;
+    display:grid; grid-template-columns:1.15fr 0.85fr; gap:48px;
+    align-items:center;
+    max-width:1280px; margin:0 auto;
+    position:relative;
+  }
+  .scan-lines{
+    position:absolute; left:50%; top:-40px; width:1px; height:120%;
+    background:linear-gradient(180deg, transparent, var(--purple), transparent);
+    opacity:0.25; z-index:-1;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono'; font-size:13px; color:var(--cyan);
+    letter-spacing:0.06em; margin-bottom:18px; display:inline-flex; align-items:center; gap:8px;
+    border:1px solid rgba(0,229,199,0.3); padding:6px 13px; border-radius:99px;
+    background:rgba(0,229,199,0.06);
+  }
+  h1{
+    font-family:'Orbitron'; font-weight:800; font-size:clamp(32px,4.6vw,54px);
+    line-height:1.08; letter-spacing:0.01em; margin-bottom:22px;
+    text-shadow:0 0 30px rgba(139,108,255,0.35);
+  }
+  h1 .accent{
+    color:var(--cyan);
+    background:linear-gradient(90deg, var(--cyan), var(--purple));
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  }
+  .hero p.lead{
+    font-size:16.5px; color:var(--text-soft); max-width:480px; margin-bottom:30px;
+  }
+  .hero-cta{display:flex; gap:14px; flex-wrap:wrap;}
+  .btn{
+    font-family:'Inter'; font-weight:600; font-size:14.5px;
+    padding:14px 26px; border-radius:11px; border:1px solid transparent;
+    cursor:pointer; transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn:hover{transform:translateY(-2px);}
+  .btn-primary{
+    background:linear-gradient(135deg, var(--purple), var(--purple-deep));
+    color:#fff; box-shadow:0 0 0px rgba(139,108,255,0.5);
+  }
+  .btn-primary:hover{box-shadow:0 10px 30px -6px rgba(139,108,255,0.65);}
+  .btn-ghost{border-color:var(--glass-border); color:var(--text); background:rgba(255,255,255,0.04);}
+  .btn-ghost:hover{background:rgba(255,255,255,0.08);}
+
+  /* terminal mockup */
+  .terminal{
+    padding:22px 22px 26px;
+    box-shadow:0 30px 70px -24px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.04) inset;
+  }
+  .terminal-bar{display:flex; gap:7px; margin-bottom:16px;}
+  .terminal-bar span{width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,0.18);}
+  .terminal-bar span:nth-child(1){background:var(--pink);}
+  .terminal-bar span:nth-child(2){background:var(--gold);}
+  .terminal-bar span:nth-child(3){background:var(--cyan);}
+  .terminal pre{
+    font-family:'JetBrains Mono'; font-size:12.5px; line-height:1.9; white-space:pre-wrap;
+  }
+  .t-user{color:#A98CFF;}
+  .t-cmd{color:#fff; font-weight:500;}
+  .t-out{color:var(--text-soft);}
+  .t-ok{color:var(--cyan);}
+  .blink{display:inline-block; width:7px; height:14px; background:var(--cyan); vertical-align:middle; animation:blink 1s steps(1) infinite; box-shadow:0 0 8px var(--cyan);}
+  @keyframes blink{50%{opacity:0;}}
+
+  /* ===== SECTIONS ===== */
+  .section{padding:60px 6vw; max-width:1280px; margin:0 auto;}
+  .section-head{margin-bottom:42px; max-width:640px;}
+  .section-head .tag{
+    font-family:'JetBrains Mono'; font-size:12.5px; color:var(--cyan);
+    margin-bottom:10px; display:block; letter-spacing:0.04em;
+  }
+  .section-head h2{
+    font-family:'Orbitron'; font-weight:700; font-size:clamp(24px,3vw,34px);
+    letter-spacing:0.01em; margin-bottom:10px;
+  }
+  .section-head p{color:var(--text-soft); font-size:15px;}
+
+  /* STEPS */
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+  .step{padding:26px 22px;}
+  .step .num{font-family:'JetBrains Mono'; color:var(--gold); font-size:12.5px; margin-bottom:14px; display:block;}
+  .step h3{font-family:'Orbitron'; font-weight:600; font-size:16px; margin-bottom:8px;}
+  .step p{color:var(--text-soft); font-size:14px;}
+
+  /* TIERS */
+  .tiers{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; align-items:start;}
+  .tier{
+    padding:28px 24px; display:flex; flex-direction:column;
+    position:relative; overflow:hidden;
+  }
+  .tier::before{content:""; position:absolute; top:0; left:0; right:0; height:3px;}
+  .tier.free::before{background:linear-gradient(90deg, #6E7691, #9AA3C2);}
+  .tier.master::before{background:linear-gradient(90deg, var(--purple), var(--cyan));}
+  .tier.legend::before{background:linear-gradient(90deg, var(--gold), var(--pink));}
+  .tier.master{border-color:rgba(139,108,255,0.5); box-shadow:0 0 50px -12px rgba(139,108,255,0.45);}
+  .tier.legend{border-color:rgba(255,200,87,0.45); box-shadow:0 0 50px -12px rgba(255,200,87,0.35);}
+  .tier-label{font-family:'JetBrains Mono'; font-size:11.5px; color:var(--text-soft); letter-spacing:0.05em; margin-bottom:6px;}
+  .tier-name{font-family:'Orbitron'; font-weight:700; font-size:22px; margin-bottom:4px;}
+  .tier.master .tier-name{color:#C9BBFF;}
+  .tier.legend .tier-name{color:var(--gold);}
+  .tier-price{font-family:'Inter'; font-size:14px; color:var(--text-soft); margin-bottom:6px;}
+  .badge-popular{
+    position:absolute; top:16px; right:16px;
+    font-family:'JetBrains Mono'; font-size:10.5px; color:#05060C; background:var(--cyan);
+    padding:4px 10px; border-radius:99px; font-weight:600;
+  }
+  .badge-best{
+    position:absolute; top:16px; right:16px;
+    font-family:'JetBrains Mono'; font-size:10.5px; color:#05060C; background:var(--gold);
+    padding:4px 10px; border-radius:99px; font-weight:600;
+  }
+  .feature-list{list-style:none; margin:14px 0 22px;}
+  .feature-list li{
+    display:flex; align-items:flex-start; gap:9px; font-size:13.8px;
+    padding:8px 0; border-bottom:1px solid var(--glass-border); color:var(--text-soft);
+  }
+  .feature-list li:last-child{border-bottom:none;}
+  .tier.free .ico{color:#9AA3C2;}
+  .tier.master .ico{color:var(--cyan);}
+  .tier.legend .ico{color:var(--gold);}
+
+  /* duration selector */
+  .duration-box{margin-bottom:18px;}
+  .duration-label{font-family:'JetBrains Mono'; font-size:11.5px; color:var(--text-soft); margin-bottom:10px; display:block;}
+  .duration-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .duration-opt{
+    position:relative;
+  }
+  .duration-opt input{position:absolute; opacity:0; inset:0; cursor:pointer; margin:0; width:100%; height:100%;}
+  .duration-opt label{
+    display:flex; flex-direction:column; gap:2px;
+    border:1px solid var(--glass-border); border-radius:9px; padding:9px 10px;
+    font-size:12.5px; color:var(--text-soft); cursor:pointer;
+    transition:border-color .15s, background .15s;
+    background:rgba(255,255,255,0.02);
+  }
+  .duration-opt label b{font-family:'Inter'; font-size:13px; color:var(--text); font-weight:600;}
+  .tier.master .duration-opt input:checked + label{border-color:var(--purple); background:rgba(139,108,255,0.12); box-shadow:0 0 0 1px var(--purple) inset;}
+  .tier.legend .duration-opt input:checked + label{border-color:var(--gold); background:rgba(255,200,87,0.12); box-shadow:0 0 0 1px var(--gold) inset;}
+  .duration-opt.full{grid-column:1 / -1;}
+
+  .tier .btn{width:100%; justify-content:center; margin-bottom:10px;}
+  .tier.free .btn-main{background:rgba(255,255,255,0.08); color:var(--text);}
+  .tier.master .btn-main{background:linear-gradient(135deg, var(--purple), var(--purple-deep)); color:#fff;}
+  .tier.legend .btn-main{background:linear-gradient(135deg, var(--gold), #E0962E); color:#1A1300;}
+
+  .pay-row{display:flex; gap:9px;}
+  .pay-row .btn{flex:1; font-size:12.8px; padding:11px 14px;}
+  .btn-qris{background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:var(--text);}
+  .btn-confirm{background:rgba(0,229,199,0.12); border:1px solid rgba(0,229,199,0.4); color:var(--cyan);}
+
+  .note-row{
+    margin-top:8px; display:flex; align-items:center; gap:10px;
+    font-family:'JetBrains Mono'; font-size:12.5px; color:var(--text-soft);
+  }
+
+  /* TIER THUMBNAIL */
+  .tier-thumb{
+    width:100%; height:140px; border-radius:12px; overflow:hidden;
+    margin-bottom:16px; position:relative;
+    background:rgba(255,255,255,0.04); border:1px solid var(--glass-border);
+  }
+  .tier-thumb img{
+    width:100%; height:100%; object-fit:cover; display:block;
+    transition:transform .4s ease;
+  }
+  .tier:hover .tier-thumb img{transform:scale(1.06);}
+  .tier-thumb .thumb-overlay{
+    position:absolute; inset:0;
+    background:linear-gradient(180deg, transparent 40%, rgba(5,6,12,0.65) 100%);
+  }
+  .tier.free .tier-thumb{border-color:rgba(154,163,194,0.25);}
+  .tier.master .tier-thumb{border-color:rgba(139,108,255,0.35);}
+  .tier.legend .tier-thumb{border-color:rgba(255,200,87,0.35);}
+  /* placeholder kalau gambar belum diisi */
+  .tier-thumb-placeholder{
+    width:100%; height:100%; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:6px;
+    font-family:'JetBrains Mono'; font-size:11px; color:var(--text-soft);
+    text-align:center; padding:10px;
+  }
+  .tier-thumb-placeholder span{font-size:22px;}
+
+  /* AKSES LAIN — 3 kartu horizontal */
+  .akses-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+  .akses-card{
+    padding:0; display:flex; flex-direction:column;
+    position:relative; overflow:hidden;
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .akses-card:hover{transform:translateY(-4px);}
+  .akses-card::before{content:""; position:absolute; top:0; left:0; right:0; height:3px; z-index:1;}
+  .akses-owner::before{background:linear-gradient(90deg,#FF6B35,#FF3D7F);}
+  .akses-dev::before{background:linear-gradient(90deg,#00E5C7,#8B6CFF);}
+  .akses-script::before{background:linear-gradient(90deg,#4CAF50,#00E5C7);}
+  .akses-owner{border-color:rgba(255,107,53,0.45); box-shadow:0 0 40px -12px rgba(255,107,53,0.3);}
+  .akses-dev{border-color:rgba(139,108,255,0.45); box-shadow:0 0 40px -12px rgba(139,108,255,0.3);}
+  .akses-script{border-color:rgba(76,175,80,0.45); box-shadow:0 0 40px -12px rgba(76,175,80,0.3);}
+  .akses-thumb{
+    width:100%; height:160px; overflow:hidden; position:relative;
+    background:rgba(255,255,255,0.03);
+  }
+  .akses-thumb img{width:100%; height:100%; object-fit:cover; transition:transform .4s ease;}
+  .akses-card:hover .akses-thumb img{transform:scale(1.06);}
+  .akses-thumb-placeholder{
+    width:100%; height:100%; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:6px;
+    font-family:'JetBrains Mono'; font-size:11px; color:var(--text-soft); text-align:center;
+  }
+  .akses-thumb-placeholder span{font-size:28px;}
+  .akses-thumb-overlay{
+    position:absolute; inset:0;
+    background:linear-gradient(180deg, transparent 50%, rgba(5,6,12,0.7) 100%);
+  }
+  .akses-body{padding:20px 22px 24px; display:flex; flex-direction:column; flex:1;}
+  .akses-tag{
+    font-family:'JetBrains Mono'; font-size:11px; letter-spacing:0.05em;
+    margin-bottom:8px; display:inline-block; padding:3px 9px; border-radius:99px;
+  }
+  .akses-owner .akses-tag{color:#FF6B35; background:rgba(255,107,53,0.12); border:1px solid rgba(255,107,53,0.3);}
+  .akses-dev .akses-tag{color:var(--cyan); background:rgba(0,229,199,0.10); border:1px solid rgba(0,229,199,0.3);}
+  .akses-script .akses-tag{color:#4CAF50; background:rgba(76,175,80,0.10); border:1px solid rgba(76,175,80,0.3);}
+  .akses-name{font-family:'Orbitron'; font-weight:700; font-size:17px; margin-bottom:6px;}
+  .akses-owner .akses-name{color:#FF9470;}
+  .akses-dev .akses-name{color:#C9BBFF;}
+  .akses-script .akses-name{color:#81C784;}
+  .akses-desc{font-size:13.5px; color:var(--text-soft); margin-bottom:16px; flex:1;}
+  .akses-feats{list-style:none; margin-bottom:18px; display:grid; gap:7px;}
+  .akses-feats li{font-size:13px; color:var(--text-soft); display:flex; gap:8px; align-items:flex-start;}
+  .akses-owner .akses-feats .ico{color:#FF6B35;}
+  .akses-dev .akses-feats .ico{color:var(--cyan);}
+  .akses-script .akses-feats .ico{color:#4CAF50;}
+  .btn-akses-owner{background:linear-gradient(135deg,#FF6B35,#FF3D7F); color:#fff;}
+  .btn-akses-dev{background:linear-gradient(135deg,var(--purple),var(--cyan)); color:#fff;}
+  .btn-akses-script{background:linear-gradient(135deg,#4CAF50,#00E5C7); color:#0A1A0A;}
+  .akses-card .btn{width:100%; justify-content:center;}
+
+  @media(max-width:880px){.akses-grid{grid-template-columns:1fr;}}
+
+  /* MENU/FEATURES GRID */
+  .menu-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px;}
+  .menu-item{padding:20px 18px;}
+  .menu-item .emoji{font-size:22px; margin-bottom:10px; display:block;}
+  .menu-item h4{font-family:'Orbitron'; font-size:14px; margin-bottom:6px; font-weight:600;}
+  .menu-item p{font-size:13px; color:var(--text-soft);}
+
+  /* INFO PANEL */
+  .info-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  .info-card{padding:24px 22px;}
+  .info-card h3{font-family:'Orbitron'; font-size:15px; margin-bottom:10px; color:var(--cyan);}
+  .info-card p, .info-card li{font-size:13.8px; color:var(--text-soft);}
+  .info-card ul{list-style:none; display:grid; gap:8px;}
+  .info-card li::before{content:"▸ "; color:var(--purple);}
+
+  /* FAQ */
+  .faq{display:grid; gap:12px; max-width:760px;}
+  details{padding:17px 20px;}
+  summary{
+    cursor:pointer; font-weight:600; font-size:14.5px; list-style:none;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"+"; color:var(--cyan); font-size:19px; font-weight:400;}
+  details[open] summary::after{content:"–";}
+  details p{margin-top:12px; color:var(--text-soft); font-size:13.8px;}
+
+  footer{
+    border-top:1px solid var(--glass-border); padding:30px 6vw; margin-top:30px;
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;
+    font-family:'JetBrains Mono'; font-size:12px; color:var(--text-soft);
+  }
+
+  @media (max-width:880px){
+    .hero{grid-template-columns:1fr;}
+    .steps, .tiers{grid-template-columns:1fr;}
+    .menu-grid{grid-template-columns:repeat(2,1fr);}
+    .info-grid{grid-template-columns:1fr;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="backdrop"></div>
+<div class="backdrop-tint"></div>
+<div class="backdrop-noise"></div>
+
+<header>
+  <div class="brand">
+    <div class="brand-mark">VZ</div>
+    <div class="brand-name">Viorzz <span>Bot</span></div>
+  </div>
+  <div class="status-pill"><span class="dot"></span> Server online · Pairing siap</div>
+</header>
+
+<section class="hero">
+  <div class="scan-lines"></div>
+  <div>
+    <div class="eyebrow">⚡ satu command, bot sendiri</div>
+    <h1>Nomor WhatsApp-mu,<br><span class="accent">jadi bot</span> dalam hitungan detik.</h1>
+    <p class="lead">Ketik <span class="mono" style="color:var(--cyan); font-weight:600;">.jadibot</span>, masukin pairing code, dan WhatsApp-mu langsung jalan otomatis 24 jam — dengan tampilan dan tenaga ala Viorzz Bot.</p>
+    <div class="hero-cta">
+      <a href="#tiers" class="btn btn-primary">Lihat Role &amp; Mulai →</a>
+      <a href="#cara-kerja" class="btn btn-ghost">Cara Kerjanya</a>
+    </div>
+  </div>
+
+  <div class="terminal glass">
+    <div class="terminal-bar"><span></span><span></span><span></span></div>
+    <pre><span class="t-user">Kamu:</span> <span class="t-cmd">.jadibot</span>
+<span class="t-out">Viorzz:</span> Kirim nomor WhatsApp (62xxxx)
+
+<span class="t-user">Kamu:</span> <span class="t-cmd">62882019xxxxx</span>
+<span class="t-out">Viorzz:</span> Pairing code kamu:
+        <span class="t-ok">VIOR-2026</span>
+<span class="t-out">Viorzz:</span> Masukkan code ini di
+        Linked Devices WhatsApp-mu
+
+<span class="t-ok">✓ Tersambung. Bot aktif.</span><span class="blink"></span></pre>
+  </div>
+</section>
+
+<section class="section" id="cara-kerja">
+  <div class="section-head">
+    <span class="tag">cara kerja</span>
+    <h2>Tiga langkah, tanpa install apa-apa.</h2>
+    <p>Semua proses jalan di server kami. Kamu cuma butuh WhatsApp di HP-mu.</p>
+  </div>
+  <div class="steps">
+    <div class="step glass">
+      <span class="num mono">01 — Kirim command</span>
+      <h3>Ketik .jadibot</h3>
+      <p>Chat ke Viorzz Bot dan ketik <span class="mono">.jadibot</span>, lalu kirim nomor WhatsApp yang mau diaktifkan.</p>
+    </div>
+    <div class="step glass">
+      <span class="num mono">02 — Pasangkan</span>
+      <h3>Masukkan pairing code</h3>
+      <p>Buka WhatsApp → Perangkat Tertaut → masukkan code yang dikirim bot. Tidak perlu scan QR.</p>
+    </div>
+    <div class="step glass">
+      <span class="num mono">03 — Selesai</span>
+      <h3>Bot langsung aktif</h3>
+      <p>Nomor kamu otomatis berjalan sebagai bot sesuai role yang dipilih, siap dipakai kapan saja.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="tiers">
+  <div class="section-head">
+    <span class="tag">role &amp; benefit</span>
+    <h2>Pilih role sesuai kebutuhanmu.</h2>
+    <p>Tiga level akses untuk fitur .jadibot. Pilih durasi paket, bayar via QRIS, kirim bukti — selesai.</p>
+  </div>
+
+  <div class="tiers">
+
+    <!-- FREE -->
+    <div class="tier free glass">
+      <div class="tier-label">role</div>
+
+      <!--
+        ✏️ THUMBNAIL ROLE FREE
+        Ganti src di bawah dengan link gambar thumbnail role Free kamu.
+        Rekomendasi ukuran: 400x280px, format JPG/PNG/WEBP.
+        Upload ke imgbb.com lalu copy direct link-nya.
+        Kalau belum punya gambar, hapus tag <img> dan biarkan placeholder muncul.
+      -->
+      <div class="tier-thumb">
+        <img src="https://raw.githubusercontent.com/ZrooPro/SaveDat2/main/uploads/20260628_144819_999_6j5iv4xa.jpg" alt="Role Free"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="thumb-overlay"></div>
+        <div class="tier-thumb-placeholder" style="display:none">
+          <span>🆓</span>✏️ Tempel link thumbnail<br>role Free di src img
+        </div>
+      </div>
+
+      <div class="tier-name">Free</div>
+      <div class="tier-price">Rp0 / coba gratis</div>
+      <ul class="feature-list">
+        <li><span class="ico">✓</span> Aktif <strong>3 jam</strong> per sesi, lalu nonaktif otomatis</li>
+        <li><span class="ico">✓</span> Akses command dasar</li>
+        <li><span class="ico">✓</span> 1x reaktivasi per hari</li>
+        <li><span class="ico" style="color:#5C6480;">✕</span> Tanpa auto-restart</li>
+        <li><span class="ico" style="color:#5C6480;">✕</span> Tanpa fitur premium &amp; plugin</li>
+      </ul>
+      <!-- ✏️ GANTI: Tempel link grup WA/Telegram jadibot free kamu di href di bawah -->
+      <a href="https://chat.whatsapp.com/IYL90TDKRGPEBL2DqQ3yqw" class="btn btn-main" target="_blank">Coba Gratis</a>
+    </div>
+
+    <!-- MASTER -->
+    <div class="tier master glass">
+      <span class="badge-popular">Paling banyak dipilih</span>
+      <div class="tier-label">role</div>
+
+      <!--
+        ✏️ THUMBNAIL ROLE MASTER
+        Ganti src di bawah dengan link gambar thumbnail role Master kamu.
+        Rekomendasi ukuran: 400x280px, format JPG/PNG/WEBP.
+        Upload ke imgbb.com lalu copy direct link-nya.
+      -->
+      <div class="tier-thumb">
+        <img src="https://raw.githubusercontent.com/ZrooPro/SaveDat2/main/uploads/20260628_144354_578_fr5f74zc.jpg" alt="Role Master"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="thumb-overlay"></div>
+        <div class="tier-thumb-placeholder" style="display:none">
+          <span>⚡</span>✏️ Tempel link thumbnail<br>role Master di src img
+        </div>
+      </div>
+
+      <div class="tier-name">Master</div>
+      <div class="tier-price">24 jam nonstop · auto-restart</div>
+      <ul class="feature-list">
+        <li><span class="ico">✓</span> Aktif <strong>24 jam nonstop</strong>, tanpa sesi terputus</li>
+        <li><span class="ico">✓</span> Command dasar + menengah</li>
+        <li><span class="ico">✓</span> Auto-restart otomatis kalau bot mati</li>
+        <li><span class="ico">✓</span> Prioritas antrian server</li>
+      </ul>
+
+      <div class="duration-box">
+        <span class="duration-label mono">PILIH PAKET</span>
+        <div class="duration-grid">
+          <div class="duration-opt">
+            <input type="radio" name="master-paket" id="m-7" checked>
+            <label for="m-7"><span>7 Hari</span><b>Rp 8.000</b></label>
+          </div>
+          <div class="duration-opt">
+            <input type="radio" name="master-paket" id="m-30">
+            <label for="m-30"><span>1 Bulan</span><b>Rp 15.000</b></label>
+          </div>
+          <div class="duration-opt">
+            <input type="radio" name="master-paket" id="m-60">
+            <label for="m-60"><span>2 Bulan</span><b>Rp 23.000</b></label>
+          </div>
+          <div class="duration-opt">
+            <input type="radio" name="master-paket" id="m-90">
+            <label for="m-90"><span>3 Bulan</span><b>Rp 30.000</b></label>
+          </div>
+          <div class="duration-opt full">
+            <input type="radio" name="master-paket" id="m-perm">
+            <label for="m-perm"><span>Permanent</span><b>Rp 40.000</b></label>
+          </div>
+        </div>
+      </div>
+
+      <a href="#" class="btn btn-main" onclick="orderWA('Master', 'master-paket'); return false;">Pilih Master</a>
+      <div class="pay-row">
+        <!-- ✏️ GANTI: Tempel link gambar QRIS kamu di href di bawah ini -->
+        <a href="https://raw.githubusercontent.com/ZrooPro/SaveDat2/main/uploads/20260628_143418_613_h4imubti.jpg" class="btn btn-qris" download target="_blank">⬇ Download QRIS</a>
+        <!-- ✏️ GANTI: Ganti 62882019035758 dengan nomor WhatsApp kamu -->
+        <a href="#" class="btn btn-confirm" onclick="kirimBuktiWA('Master', 'master-paket'); return false;">✓ Kirim Bukti</a>
+      </div>
+    </div>
+
+    <!-- LEGEND -->
+    <div class="tier legend glass">
+      <span class="badge-best">Fitur paling lengkap</span>
+      <div class="tier-label">role</div>
+
+      <!--
+        ✏️ THUMBNAIL ROLE LEGEND
+        Ganti src di bawah dengan link gambar thumbnail role Legend kamu.
+        Rekomendasi ukuran: 400x280px, format JPG/PNG/WEBP.
+        Upload ke imgbb.com lalu copy direct link-nya.
+      -->
+      <div class="tier-thumb">
+        <img src="https://img2.pixhost.to/images/8951/744095808_alip-1782654238401.jpg" alt="Role Legend"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="thumb-overlay"></div>
+        <div class="tier-thumb-placeholder" style="display:none">
+          <span>👑</span>✏️ Tempel link thumbnail<br>role Legend di src img
+        </div>
+      </div>
+
+      <div class="tier-name">Legend</div>
+      <div class="tier-price">Semua fitur + plugin eksklusif</div>
+      <ul class="feature-list">
+        <li><span class="ico">✓</span> Aktif <strong>24 jam nonstop</strong>, uptime tertinggi</li>
+        <li><span class="ico">✓</span> Semua command + plugin eksklusif</li>
+        <li><span class="ico">✓</span> Custom nama &amp; behavior bot</li>
+        <li><span class="ico">✓</span> Akses paling awal fitur baru + support langsung</li>
+      </ul>
+
+      <div class="duration-box">
+        <span class="duration-label mono">PILIH PAKET</span>
+        <div class="duration-grid">
+          <div class="duration-opt">
+            <input type="radio" name="legend-paket" id="l-7" checked>
+            <label for="l-7"><span>7 Hari</span><b>Rp 10.000</b></label>
+          </div>
+          <div class="duration-opt">
+            <input type="radio" name="legend-paket" id="l-30">
+            <label for="l-30"><span>1 Bulan</span><b>Rp 20.000</b></label>
+          </div>
+          <div class="duration-opt">
+            <input type="radio" name="legend-paket" id="l-60">
+            <label for="l-60"><span>2 Bulan</span><b>Rp 30.000</b></label>
+          </div>
+          <div class="duration-opt">
+            <input type="radio" name="legend-paket" id="l-90">
+            <label for="l-90"><span>3 Bulan</span><b>Rp 50.000</b></label>
+          </div>
+          <div class="duration-opt full">
+            <input type="radio" name="legend-paket" id="l-perm">
+            <label for="l-perm"><span>Permanent</span><b>Rp 60.000</b></label>
+          </div>
+        </div>
+      </div>
+
+      <a href="#" class="btn btn-main" onclick="orderWA('Legend', 'legend-paket'); return false;">Pilih Legend</a>
+      <div class="pay-row">
+        <!-- ✏️ GANTI: Tempel link gambar QRIS kamu di href di bawah ini -->
+        <a href="https://raw.githubusercontent.com/ZrooPro/SaveDat2/main/uploads/20260628_143418_613_h4imubti.jpg" class="btn btn-qris" download target="_blank">⬇ Download QRIS</a>
+        <!-- ✏️ GANTI: Ganti 62882019035758 dengan nomor WhatsApp kamu -->
+        <a href="#" class="btn btn-confirm" onclick="kirimBuktiWA('Legend', 'legend-paket'); return false;">✓ Kirim Bukti</a>
+      </div>
+    </div>
+
+  </div>
+
+
+</section>
+
+<!-- ===== AKSES LAIN ===== -->
+<section class="section" id="akses-lain">
+  <div class="section-head">
+    <span class="tag">akses lain 🍀</span>
+    <h2>Lebih dari sekedar .jadibot.</h2>
+    <p>Mau punya kontrol penuh atau bahkan botnya sendiri? Pilih akses sesuai kebutuhanmu.</p>
+  </div>
+
+  <div class="akses-grid">
+
+    <!-- OWNER BOT -->
+    <div class="akses-card akses-owner glass">
+      <!--
+        ✏️ THUMBNAIL AKSES OWNER BOT
+        Ganti src di bawah dengan link gambar thumbnail Owner Bot.
+        Upload ke imgbb.com → copy direct link.
+      -->
+      <div class="akses-thumb">
+        <img src="https://raw.githubusercontent.com/ZrooPro/SaveDat1/main/uploads/20260628_142932_895_69ov42xm.jpg" alt="Akses Owner Bot"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="akses-thumb-overlay"></div>
+        <div class="akses-thumb-placeholder" style="display:none">
+          <span>🔑</span><small>✏️ Tempel link thumbnail Owner Bot</small>
+        </div>
+      </div>
+      <div class="akses-body">
+        <span class="akses-tag">OWNER BOT · PERMANENT</span>
+        <div class="akses-name">Akses Owner</div>
+        <p class="akses-desc" style="font-size:22px; font-family:'Orbitron'; font-weight:700; color:#FF9470; margin-bottom:4px;">Rp 70.000</p>
+        <p class="akses-desc">Kendalikan penuh bot Viorzz — kontrol semua user, akses semua fitur, aktif selamanya.</p>
+        <ul class="akses-feats">
+          <li><span class="ico">✓</span> Akses <strong>semua fitur</strong> tanpa terkecuali</li>
+          <li><span class="ico">✓</span> Kontrol penuh semua user & role</li>
+          <li><span class="ico">✓</span> Broadcast pesan ke semua user</li>
+          <li><span class="ico">✓</span> Pantau & restart bot kapan saja</li>
+          <li><span class="ico">✓</span> <strong>Permanent</strong> — aktif selamanya</li>
+        </ul>
+        <a href="#" class="btn btn-akses-owner" onclick="orderAkses('Akses Owner Bot - Rp70.000'); return false;">Order Akses Owner →</a>
+      </div>
+    </div>
+
+    <!-- DEVELOPER BOT -->
+    <div class="akses-card akses-dev glass">
+      <!--
+        ✏️ THUMBNAIL AKSES DEVELOPER BOT
+        Ganti src di bawah dengan link gambar thumbnail Developer Bot.
+      -->
+      <div class="akses-thumb">
+        <img src="https://raw.githubusercontent.com/ZrooPro/SaveDat2/main/uploads/20260628_142836_911_0vf25o38.jpg" alt="Akses Developer Bot"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="akses-thumb-overlay"></div>
+        <div class="akses-thumb-placeholder" style="display:none">
+          <span>🛠️</span><small>✏️ Tempel link thumbnail Developer Bot</small>
+        </div>
+      </div>
+      <div class="akses-body">
+        <span class="akses-tag">DEVELOPER BOT · PERMANENT</span>
+        <div class="akses-name">Akses Developer</div>
+        <p class="akses-desc" style="font-size:22px; font-family:'Orbitron'; font-weight:700; color:#C9BBFF; margin-bottom:4px;">Rp 80.000</p>
+        <p class="akses-desc">Akses level tertinggi — modifikasi core bot, tambah plugin custom, dan uji fitur eksperimental langsung.</p>
+        <ul class="akses-feats">
+          <li><span class="ico">✓</span> Akses <strong>semua fitur</strong> tanpa terkecuali</li>
+          <li><span class="ico">✓</span> Akses source code & plugin API</li>
+          <li><span class="ico">✓</span> Deploy fitur & update langsung</li>
+          <li><span class="ico">✓</span> Support teknis langsung dari creator</li>
+          <li><span class="ico">✓</span> <strong>Permanent</strong> — aktif selamanya</li>
+        </ul>
+        <a href="#" class="btn btn-akses-dev" onclick="orderAkses('Akses Developer Bot - Rp80.000'); return false;">Order Akses Developer →</a>
+      </div>
+    </div>
+
+    <!-- BELI SCRIPT -->
+    <div class="akses-card akses-script glass">
+      <!--
+        ✏️ THUMBNAIL SCRIPT VIORZZ AI MULTIDEVICE
+        Ganti src di bawah dengan link gambar thumbnail script bot kamu.
+      -->
+      <div class="akses-thumb">
+        <img src="https://raw.githubusercontent.com/ZrooPro/SaveDat1/main/uploads/20260628_142647_913_65yqh10d.jpg" alt="Script Viorzz AI MultiDevice"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="akses-thumb-overlay"></div>
+        <div class="akses-thumb-placeholder" style="display:none">
+          <span>📦</span><small>✏️ Tempel link thumbnail Script Bot</small>
+        </div>
+      </div>
+      <div class="akses-body">
+        <span class="akses-tag">SCRIPT BOT · PERMANENT</span>
+        <div class="akses-name">Viorzz AI MultiDevice</div>
+        <p class="akses-desc" style="font-size:22px; font-family:'Orbitron'; font-weight:700; color:#81C784; margin-bottom:4px;">Rp 250.000</p>
+        <p class="akses-desc">Beli script bot Viorzz AI MultiDevice lengkap — deploy di server sendiri, support multi-nomor sekaligus.</p>
+        <ul class="akses-feats">
+          <li><span class="ico">✓</span> Akses <strong>semua fitur</strong> tanpa terkecuali</li>
+          <li><span class="ico">✓</span> Script lengkap siap deploy</li>
+          <li><span class="ico">✓</span> Support multi-device & multi-nomor</li>
+          <li><span class="ico">✓</span> Update script gratis selamanya</li>
+          <li><span class="ico">✓</span> <strong>Permanent</strong> — lisensi seumur hidup</li>
+        </ul>
+        <a href="#" class="btn btn-akses-script" onclick="orderAkses('Script Viorzz AI MultiDevice - Rp250.000'); return false;">Beli Script Sekarang →</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <span class="tag">menu &amp; fitur</span>
+    <h2>Lebih dari sekadar .jadibot.</h2>
+    <p>Beberapa fitur lain yang juga tersedia di Viorzz Bot.</p>
+  </div>
+  <div class="menu-grid">
+    <div class="menu-item glass">
+      <span class="emoji">🎮</span>
+      <h4>Game &amp; Fun</h4>
+      <p>Tebak gambar, kuis, dan mini-game seru langsung di chat.</p>
+    </div>
+    <div class="menu-item glass">
+      <span class="emoji">🎨</span>
+      <h4>Sticker Maker</h4>
+      <p>Ubah gambar/video jadi sticker WhatsApp dalam sekali kirim.</p>
+    </div>
+    <div class="menu-item glass">
+      <span class="emoji">📥</span>
+      <h4>Downloader</h4>
+      <p>Download video/audio dari berbagai platform lewat link.</p>
+    </div>
+    <div class="menu-item glass">
+      <span class="emoji">🤖</span>
+      <h4>AI Chat</h4>
+      <p>Ngobrol natural dengan AI bawaan, tanya apa saja.</p>
+    </div>
+    <div class="menu-item glass">
+      <span class="emoji">🛡️</span>
+      <h4>Group Tools</h4>
+      <p>Anti-link, welcome message, dan moderasi grup otomatis.</p>
+    </div>
+    <div class="menu-item glass">
+      <span class="emoji">⏰</span>
+      <h4>Reminder</h4>
+      <p>Atur pengingat otomatis yang dikirim bot ke kamu.</p>
+    </div>
+    <div class="menu-item glass">
+      <span class="emoji">🖼️</span>
+      <h4>Tools Edit</h4>
+      <p>Edit foto, ubah background, dan filter cepat lewat chat.</p>
+    </div>
+    <div class="menu-item glass">
+      <span class="emoji">📊</span>
+      <h4>Info Bot</h4>
+      <p>Cek status, runtime, dan ping bot kapan saja.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <span class="tag">informasi</span>
+    <h2>Yang perlu kamu tahu.</h2>
+  </div>
+  <div class="info-grid">
+    <div class="info-card glass">
+      <h3>Tentang Viorzz Bot</h3>
+      <p>Viorzz Bot adalah layanan self-bot WhatsApp berbasis fitur .jadibot, dibuat untuk komunitas yang ingin punya bot sendiri tanpa repot setup server atau coding.</p>
+    </div>
+    <div class="info-card glass">
+      <h3>Cara Pembayaran</h3>
+      <ul>
+        <li>Pilih role &amp; durasi paket di atas</li>
+        <li>Download QRIS dan bayar sesuai nominal</li>
+        <li>Kirim bukti pembayaran ke kontak developer</li>
+        <li>Role aktif setelah dikonfirmasi admin</li>
+      </ul>
+    </div>
+    <div class="info-card glass">
+      <h3>Catatan Penting</h3>
+      <ul>
+        <li>Jangan bagikan pairing code ke orang lain</li>
+        <li>Role Free otomatis nonaktif setelah 3 jam</li>
+        <li>Upgrade kapan saja tanpa kehilangan histori bot</li>
+      </ul>
+    </div>
+    <div class="info-card glass">
+      <h3>Butuh Bantuan?</h3>
+      <p>Kalau pairing gagal atau ada kendala pembayaran, hubungi langsung developer lewat tombol "Kirim Bukti" di atas atau kontak yang tersedia di bot utama.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <span class="tag">pertanyaan umum</span>
+    <h2>Yang sering ditanyakan.</h2>
+  </div>
+  <div class="faq">
+    <details open class="glass">
+      <summary>Apakah nomor saya aman dipakai jadi bot?</summary>
+      <p>Proses pairing menggunakan metode resmi WhatsApp (Linked Devices), bukan login lewat pihak ketiga. Kamu bisa putuskan koneksi kapan saja lewat WhatsApp-mu sendiri.</p>
+    </details>
+    <details class="glass">
+      <summary>Kalau role Free habis waktunya, datanya hilang?</summary>
+      <p>Tidak. Sesi nonaktif otomatis, tapi pengaturan kamu tersimpan. Aktifkan ulang lewat .jadibot atau upgrade ke Master/Legend untuk online 24 jam.</p>
+    </details>
+    <details class="glass">
+      <summary>Paket permanent itu maksudnya apa?</summary>
+      <p>Paket permanent berarti role aktif tanpa tanggal kedaluwarsa, selama tidak ada pelanggaran ketentuan penggunaan.</p>
+    </details>
+    <details class="glass">
+      <summary>Berapa lama konfirmasi pembayaran?</summary>
+      <p>Setelah bukti pembayaran dikirim ke developer, role biasanya aktif setelah dicek dan dikonfirmasi oleh admin.</p>
+    </details>
+  </div>
+</section>
+
+<footer>
+  <span>Viorzz Bot — self bot WhatsApp Resmi</span>
+  <span>Dibuat untuk komunitas bot WhatsApp</span>
+</footer>
+
+<script>
+  /*
+   * ✏️ GANTI: Isi nomor WA developer kamu di bawah (format: 628xxx, tanpa + atau spasi)
+   * Contoh: const NOMOR_WA = "62882019035758";
+   */
+  const NOMOR_WA = "62882019035758";
+
+  /* Ambil label durasi yang dipilih user */
+  function getDurasi(namaRadio) {
+    const checked = document.querySelector(`input[name="${namaRadio}"]:checked`);
+    if (!checked) return "—";
+    const label = checked.closest('.duration-opt').querySelector('label span');
+    if (!checked) return "—";
+    const label = checked.closest('.duration-opt').querySelector('label span');
+    return label ? label.textContent.trim() : "—";
+  }
+
+  /* Klik "Pilih Master/Legend" → buka WA dengan detail order */
+  function orderWA(role, namaRadio) {
+    const durasi = getDurasi(namaRadio);
+    const pesan =
+      `Halo kak, aku mau order .jadibot! 🤖\n\n` +
+      `Role   : ${role}\n` +
+      `Durasi : ${durasi}\n\n` +
+      `Mohon infokan nominal & cara bayarnya ya kak 🙏`;
+    window.open(`https://wa.me/${NOMOR_WA}?text=${encodeURIComponent(pesan)}`, '_blank');
+  }
+
+  /* Klik order akses lain (Owner/Developer/Script) → buka WA dengan detail */
+  function orderAkses(jenis) {
+    const pesan =
+      `Halo kak, aku mau tanya/order ini! 🍀\n\n` +
+      `Produk : ${jenis}\n\n` +
+      `Mohon infokan harga & cara ordernya ya kak 🙏`;
+    window.open(`https://wa.me/${NOMOR_WA}?text=${encodeURIComponent(pesan)}`, '_blank');
+  }
+  function kirimBuktiWA(role, namaRadio) {
+    const durasi = getDurasi(namaRadio);
+    const pesan =
+      `Halo kak, ini bukti pembayaran .jadibot! 🧾\n\n` +
+      `Role   : ${role}\n` +
+      `Durasi : ${durasi}\n\n` +
+      `[Lampirkan foto/screenshot bukti bayar di sini]\n\n` +
+      `Mohon dikonfirmasi ya kak, terima kasih! 🙏`;
+    window.open(`https://wa.me/${NOMOR_WA}?text=${encodeURIComponent(pesan)}`, '_blank');
+  }
+</script>
+</body>
+</html>
